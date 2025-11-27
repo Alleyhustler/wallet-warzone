@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wallet Warzone | SOL Edition</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --sol-green: #14F195;
+            --sol-purple: #9945FF;
+            --danger-red: #ff3131;
+            --bg-dark: #0a0a0a;
+            --glass: rgba(20, 20, 20, 0.90);
+            --border: 1px solid rgba(153, 69, 255, 0.3);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+  font-family: "Outfit", sans-serif;
+            background-color: var(--bg-dark);
+            background-image: url('background.png');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Dark Overlay */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.8), rgba(10,10,10,0.95));
+            z-index: -1;
+        }
+
+        /* --- Header --- */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 1px solid #333;
+            background: var(--glass);
+            backdrop-filter: blur(10px);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .brand img {
+            height: 80px;
+            width: auto;
+            border-radius: 50%;
+        }
+
+        .brand h1 {
+            font-size: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            /* Gradient Text Effect */
+            background: -webkit-linear-gradient(45deg, var(--sol-green), var(--sol-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 900;
+        }
+
+        .nav-links a {
+            color: #ccc;
+            text-decoration: none;
+            margin-right: 20px;
+            font-size: 0.9rem;
+            transition: color 0.3s;
+        }
+        
+        .nav-links a:hover { color: var(--sol-green); }
+
+        .btn-connect {
+            background: linear-gradient(45deg, #2a2a2a, #000);
+            border: 1px solid var(--sol-purple);
+            color: #fff;
+            padding: 10px 24px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: bold;
+            transition: all 0.3s;
+            border-radius: 4px;
+        }
+
+        .btn-connect:hover {
+            border-color: var(--sol-green);
+            box-shadow: 0 0 15px rgba(20, 241, 149, 0.3);
+        }
+
+        /* --- Stats Bar --- */
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            text-align: center;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.8);
+            border-bottom: 1px solid #222;
+            font-size: 0.9rem;
+        }
+
+        .stat-item span {
+            display: block;
+            color: #888;
+            font-size: 0.7rem;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .live-dot {
+            height: 8px;
+            width: 8px;
+            background-color: var(--danger-red);
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 6px;
+            box-shadow: 0 0 8px var(--danger-red);
+            animation: blink 1.5s infinite;
+        }
+
+        /* --- Main Arena --- */
+        main {
+            flex: 1;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .status-message {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 12px;
+            border: 1px dashed #444;
+            color: #aaa;
+            background: rgba(0,0,0,0.3);
+            font-size: 0.9rem;
+        }
+
+        .wallet-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        /* --- Wallet Card --- */
+        .wallet-card {
+            background: rgba(25, 25, 25, 0.7);
+            border: 1px solid #333;
+            padding: 20px;
+            position: relative;
+            transition: transform 0.2s;
+            overflow: hidden;
+            backdrop-filter: blur(5px);
+        }
+
+        .wallet-card:hover {
+            border-color: var(--sol-purple);
+            transform: translateY(-2px);
+        }
+
+        .wallet-card.eliminated {
+            opacity: 0.5;
+            filter: grayscale(100%);
+            border-color: #333;
+        }
+
+        .wallet-card.eliminated::after {
+            content: 'KIA'; /* Killed In Action fits Warzone better */
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%) rotate(-15deg);
+            font-size: 3rem;
+            color: var(--danger-red);
+            text-shadow: 2px 2px 0 #000;
+            font-weight: 900;
+            border: 4px solid var(--danger-red);
+            padding: 5px 15px;
+            z-index: 10;
+        }
+
+        .wallet-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            align-items: center;
+        }
+
+        .avatar {
+            width: 35px;
+            height: 35px;
+            background: linear-gradient(135deg, var(--sol-purple), var(--sol-green));
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+        }
+
+        .wallet-address {
+            font-size: 1.2rem;
+            letter-spacing: 1px;
+            font-weight: bold;
+        }
+
+        .vote-count {
+            color: #aaa;
+            font-size: 0.8rem;
+            margin-top: 2px;
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: #222;
+            margin: 20px 0;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff6b6b, var(--danger-red));
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .btn-vote {
+            width: 100%;
+            padding: 12px;
+            background: #111;
+            border: 1px solid #444;
+            color: #fff;
+            cursor: pointer;
+            font-family: inherit;
+            text-transform: uppercase;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+
+        .btn-vote:hover:not(:disabled) {
+            background: var(--danger-red);
+            border-color: var(--danger-red);
+            color: #000;
+        }
+
+        .btn-vote:disabled {
+            cursor: not-allowed;
+            opacity: 0.3;
+            border-color: #333;
+        }
+
+        /* --- Footer --- */
+        footer {
+            text-align: center;
+            padding: 30px;
+            font-size: 0.8rem;
+            color: #555;
+            border-top: 1px solid #222;
+            background: #050505;
+        }
+
+        /* --- Animations --- */
+        @keyframes blink {
+            0% { opacity: 1; }
+            50% { opacity: 0.3; }
+            100% { opacity: 1; }
+        }
+
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            10% { transform: translate(-1px, -2px) rotate(-1deg); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); }
+            30% { transform: translate(3px, 2px) rotate(0deg); }
+            40% { transform: translate(1px, -1px) rotate(1deg); }
+            50% { transform: translate(-1px, 2px) rotate(-1deg); }
+            60% { transform: translate(-3px, 1px) rotate(0deg); }
+            70% { transform: translate(3px, 1px) rotate(-1deg); }
+            80% { transform: translate(-1px, -1px) rotate(1deg); }
+            90% { transform: translate(1px, 2px) rotate(0deg); }
+            100% { transform: translate(1px, -2px) rotate(-1deg); }
+        }
+
+        .shake {
+            animation: shake 0.5s;
+            animation-iteration-count: 1;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="brand">
+            <!-- Ensure logo.png is in the root directory -->
+            <img src="BurnPool (2).png" alt="Warzone Logo" onerror="this.src='https://placehold.co/50x50/9945FF/fff?text=WZ'"> 
+            <h1>Wallet Warzone</h1>
+        </div>
+        <div class="nav-links">
+            <a href="https://twitter.com" target="_blank">Twitter / X</a>
+            <button class="btn-connect" id="connectBtn">Select Wallet</button>
+        </div>
+    </header>
+
+    <div class="stats-bar">
+        <div class="stat-item">
+            <span>EPOCH / ROUND</span>
+            <strong id="roundDisplay" style="color: var(--sol-green);">#1</strong>
+        </div>
+        <div class="stat-item">
+            <span>NEXT CASUALTY IN</span>
+            <strong id="timerDisplay">04:59</strong>
+        </div>
+        <div class="stat-item">
+            <span>SURVIVORS</span>
+            <strong id="remainingDisplay">8</strong>
+        </div>
+    </div>
+
+    <main>
+        <div class="status-message">
+            <span class="live-dot"></span> <span id="activityTicker">Scanning Solana battleground...</span>
+        </div>
+
+        <div class="wallet-grid" id="walletContainer">
+            <!-- Wallets injected by JS -->
+        </div>
+    </main>
+
+    <footer>
+        <div class="stat-item">
+            <span>LAST CASUALTY</span>
+            <strong id="lastRuggedDisplay" style="color: var(--danger-red);">None</strong>
+        </div>
+        <br>
+        <p>Welcome to the Warzone. Vote to eliminate.</p>
+    </footer>
+
+    <script>
+        // --- Configuration ---
+        const WALLET_COUNT = 9; 
+        
+        // --- State ---
+        let userWallet = null;
+        let round = 842;
+        let timeLeft = 300; // 5 minutes
+        let wallets = [];
+        let activityInterval;
+        let timerInterval;
+
+        // --- DOM Elements ---
+        const walletContainer = document.getElementById('walletContainer');
+        const connectBtn = document.getElementById('connectBtn');
+        const timerDisplay = document.getElementById('timerDisplay');
+        const activityTicker = document.getElementById('activityTicker');
+        const remainingDisplay = document.getElementById('remainingDisplay');
+        const lastRuggedDisplay = document.getElementById('lastRuggedDisplay');
+
+        // --- Helpers ---
+        
+        // Base58-style address generator for Solana Look & Feel
+        const generateSolAddress = () => {
+            const chars = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+            let addr = '';
+            // First 4 chars
+            for(let i=0; i<4; i++) addr += chars[Math.floor(Math.random() * chars.length)];
+            addr += '..';
+            // Last 4 chars
+            for(let i=0; i<4; i++) addr += chars[Math.floor(Math.random() * chars.length)];
+            return addr;
+        };
+
+        // Initialize fake wallet data
+        function initWallets() {
+            for (let i = 0; i < WALLET_COUNT; i++) {
+                wallets.push({
+                    id: i,
+                    address: generateSolAddress(),
+                    votes: Math.floor(Math.random() * 5), 
+                    alive: true
+                });
+            }
+            renderWallets();
+        }
+
+        // --- Core Functions ---
+
+        function renderWallets() {
+            walletContainer.innerHTML = '';
+            
+            // Calculate total votes for visuals
+            const totalVotes = wallets.reduce((acc, w) => acc + w.votes, 0) || 1;
+
+            wallets.forEach(wallet => {
+                const card = document.createElement('div');
+                card.className = `wallet-card ${wallet.alive ? '' : 'eliminated'}`;
+                
+                // Danger bar logic
+                const percent = Math.min((wallet.votes / (totalVotes * 0.4)) * 100, 100); 
+
+                card.innerHTML = `
+                    <div class="wallet-header">
+                        <div class="avatar"></div>
+                        <div style="text-align: right;">
+                            <div class="wallet-address">${wallet.address}</div>
+                            <div class="vote-count">${wallet.votes} Votes</div>
+                        </div>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${wallet.alive ? percent : 100}%"></div>
+                    </div>
+                    <button class="btn-vote" 
+                        onclick="castVote(${wallet.id})" 
+                        ${!wallet.alive ? 'disabled' : ''}>
+                        ${wallet.alive ? 'ATTACK' : 'ELIMINATED'}
+                    </button>
+                `;
+                walletContainer.appendChild(card);
+            });
+
+            // Update stats
+            const aliveCount = wallets.filter(w => w.alive).length;
+            remainingDisplay.innerText = aliveCount;
+        }
+
+        function castVote(id) {
+            if (!userWallet) {
+                alert("Please connect your Phantom/Solflare wallet to enter the Warzone.");
+                return;
+            }
+            
+            const wallet = wallets.find(w => w.id === id);
+            if(wallet && wallet.alive) {
+                wallet.votes++;
+                renderWallets();
+                
+                // Fake feedback
+                activityTicker.innerText = `Confirmed: Attack launched on ${wallet.address}`;
+                activityTicker.style.color = 'var(--sol-green)';
+                setTimeout(() => {
+                    activityTicker.style.color = '#aaa';
+                }, 2000);
+            }
+        }
+
+        // --- Simulation Engine ---
+
+        function simulateActivity() {
+            // Randomly add a vote
+            if (Math.random() > 0.6) { 
+                const aliveWallets = wallets.filter(w => w.alive);
+                if (aliveWallets.length === 0) return;
+
+                const target = aliveWallets[Math.floor(Math.random() * aliveWallets.length)];
+                target.votes++;
+                
+                // Update ticker with random SOL address
+                const voter = generateSolAddress();
+                activityTicker.innerText = `${voter} attacked ${target.address}`;
+                
+                renderWallets();
+            }
+        }
+
+        function updateTimer() {
+            timeLeft--;
+            
+            const m = Math.floor(timeLeft / 60).toString().padStart(2, '0');
+            const s = (timeLeft % 60).toString().padStart(2, '0');
+            timerDisplay.innerText = `${m}:${s}`;
+
+            if (timeLeft <= 0) {
+                eliminateHighestVoted();
+                timeLeft = 300; 
+                round++;
+                document.getElementById('roundDisplay').innerText = `#${round}`;
+            }
+        }
+
+        function eliminateHighestVoted() {
+            const aliveWallets = wallets.filter(w => w.alive);
+            if (aliveWallets.length <= 1) return; 
+
+            // Logic to find loser
+            let highest = aliveWallets[0];
+            aliveWallets.forEach(w => {
+                if (w.votes > highest.votes) highest = w;
+            });
+
+            highest.alive = false;
+            lastRuggedDisplay.innerText = highest.address;
+            
+            renderWallets();
+            
+            walletContainer.classList.add('shake');
+            setTimeout(() => walletContainer.classList.remove('shake'), 500);
+
+            activityTicker.innerText = `ROUND ENDED: ${highest.address} was eliminated from the Warzone.`;
+            activityTicker.style.color = 'var(--danger-red)';
+        }
+
+        // --- Event Listeners ---
+
+        connectBtn.addEventListener('click', () => {
+            if (!userWallet) {
+                connectBtn.innerText = "Connecting...";
+                // Simulate delay
+                setTimeout(() => {
+                    // Generate a fake user SOL address
+                    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ123456789';
+                    let myAddr = '';
+                    for(let i=0; i<4; i++) myAddr += chars[Math.floor(Math.random() * chars.length)];
+                    myAddr += '...';
+                    for(let i=0; i<4; i++) myAddr += chars[Math.floor(Math.random() * chars.length)];
+
+                    userWallet = myAddr;
+                    connectBtn.innerText = userWallet;
+                    connectBtn.style.background = 'transparent';
+                    connectBtn.style.borderColor = 'var(--sol-green)';
+                    connectBtn.style.color = 'var(--sol-green)';
+                }, 800);
+            }
+        });
+
+        // --- Initialization ---
+        initWallets();
+        
+        setInterval(simulateActivity, 2500); 
+        setInterval(updateTimer, 1000);
+
+    </script>
+</body>
+</html>
